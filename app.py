@@ -1,10 +1,15 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_cors import CORS
-import requests, os, random, re, json
+import requests, os, random, re, json, datetime
 from werkzeug.utils import secure_filename
 from firebase_admin import auth, credentials, initialize_app
 from usage_tracker import can_use_tool, record_usage, get_usage
-import datetime
+from dotenv import load_dotenv  # ✅ Step 1: import dotenv
+
+# -------------------
+# Load environment variables
+# -------------------
+load_dotenv()  # ✅ Step 2: load .env file automatically
 
 # -------------------
 # App Configuration
@@ -21,15 +26,17 @@ UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# ✅ OpenRouter API Configuration
-OPENROUTER_API_KEY = os.getenv(
-    "OPENROUTER_API_KEY",
-    "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"
-)
+# ✅ OpenRouter API Configuration (secured)
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")  # ✅ Step 3: read key safely
+if not OPENROUTER_API_KEY:
+    raise ValueError("Missing OPENROUTER_API_KEY. Add it in your .env file.")
 
 BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_URL = f"{BASE_URL}/chat/completions"
 MODEL = "deepseek/deepseek-r1-distill-llama-70b:free"
+
+
+
 
 # -------------------
 # Serve Pages

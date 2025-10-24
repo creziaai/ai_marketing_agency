@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crezia AI | Tools</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<!-- Add inside <head> or just before your <body> tag -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSmH2iD_2MNhjECiM51eG1YHa4jmTxwns",
+    authDomain: "glassmindai.firebaseapp.com",
+    projectId: "glassmindai",
+    storageBucket: "glassmindai.firebasestorage.app",
+    messagingSenderId: "311934024859",
+    appId: "1:311934024859:web:76161f13795089c77a9a3e",
+    measurementId: "G-PC6MFNKCPY"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged((user) => {
+    if (!user) {
+      // Not logged in → redirect
+      window.location.href = "login.html";
+    }
+  });
+
+  // Optional: Add logout button functionality
+  function logout() {
+    auth.signOut().then(() => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+  }
+</script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TM79XQ9K2N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TM79XQ9K2N');
+</script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-white shadow-md sticky top-0 z-50 py-4 px-6 flex justify-between items-center">
+  <div class="flex items-center space-x-3">
+  <img src="logo.png" alt="Crezia Logo" 
+       class="h-10 w-10 rounded-lg shadow-sm hover:scale-105 transition-transform duration-300">
+  <span class="font-extrabold text-2xl text-indigo-600 tracking-tight">Crezia AI</span>
+</div>
+
+  <ul class="flex space-x-6 font-semibold text-gray-700">
+    <li>
+        <a href="index.html" class="relative text-gray-700 text-lg hover:text-indigo-600 transition group">
+          Home
+          <span class="absolute left-0 -bottom-1 w-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300 group-hover:w-full"></span>
+        </a>
+      </li>
+<li>
+        <a href="analyzer.html" class="relative text-gray-700 text-lg hover:text-indigo-600 transition group">
+          Content Analyzer
+          <span class="absolute left-0 -bottom-1 w-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300 group-hover:w-full"></span>
+        </a>
+      </li>
+<li>
+        <a href="dashboard.html" class="relative text-gray-700 text-lg hover:text-indigo-600 transition group">
+          Content Generator
+          <span class="absolute left-0 -bottom-1 w-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300 group-hover:w-full"></span>
+        </a>
+      </li>
+</ul>
+ <!-- Account Dropdown -->
+    <div class="relative" x-data="{ open: false }">
+      <button @click="open = !open" class="focus:outline-none flex items-center space-x-2">
+        <img src="https://img.icons8.com/fluency/48/000000/user-male-circle.png" 
+             alt="Account" class="h-10 w-10 rounded-full border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition duration-300 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div 
+        x-show="open" 
+        @click.away="open = false"
+        class="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl py-2 z-50 border border-gray-100"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-2"
+      >
+        <div id="userInfo" class="hidden px-4 py-2 text-sm text-gray-600"></div>
+        <a id="loginLink" href="login.html" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition">Login</a>
+        <a id="signupLink" href="register.html" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition">Sign Up</a>
+        <button id="logoutBtn" class="hidden w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- 🔧 Navbar Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+  // 🔥 Your Firebase config (use your actual one)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSmH2iD_2MNhjECiM51eG1YHa4jmTxwns",
+  authDomain: "glassmindai.firebaseapp.com",
+  projectId: "glassmindai",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const userInfo = document.getElementById('userInfo');
+    const loginLink = document.getElementById('loginLink');
+    const signupLink = document.getElementById('signupLink');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // 👤 Track Firebase login state
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User logged in
+        userInfo.textContent = `Signed in as: ${user.email}`;
+        userInfo.classList.remove('hidden');
+        loginLink.classList.add('hidden');
+        signupLink.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      } else {
+        // User logged out
+        userInfo.classList.add('hidden');
+        loginLink.classList.remove('hidden');
+        signupLink.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      }
+    });
+
+    // 🚪 Logout
+    logoutBtn?.addEventListener('click', () => {
+      signOut(auth).then(() => {
+        window.location.href = 'index.html';
+      });
+    });
+
+    // ⚙️ Tools button behavior
+    document.getElementById('toolsBtn')?.addEventListener('click', () => {
+      const user = auth.currentUser;
+      if (user) {
+        window.location.href = 'kp.html';
+      } else {
+        window.location.href = 'register.html';
+      }
+    });
+  });
+</script>
+
+</nav>
+
+<!-- Hero Section -->
+<section class="max-w-6xl mx-auto text-center py-16 px-4">
+  <h1 class="text-4xl font-extrabold text-indigo-600 mb-4">Welcome to Crezia AI Tools</h1>
+  <p class="text-gray-700 text-lg mb-8">Generate engaging content or analyze your posts for maximum impact. Choose a tool below to get started.</p>
+</section>
+
+<!-- Tools Options -->
+<section class="max-w-6xl mx-auto px-4 grid gap-8 md:grid-cols-2 mb-16">
+  
+  <!-- Tool 1: Content Generator -->
+  <a href="/dashboard" class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition flex flex-col items-center text-center">
+    <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" alt="Content Generator" class="h-20 w-20 mb-4">
+    <h2 class="font-bold text-xl text-indigo-600 mb-2">Content Generator</h2>
+    <p class="text-gray-600">Create captions, ad copy, and blogs instantly. Choose tone, platform, and content type.</p>
+  </a>
+
+  <!-- Tool 2: Content Analyzer -->
+  <a href="/analyzer" class="bg-white rounded-2xl shadow-lg p-8 hover:shadow-2xl transition flex flex-col items-center text-center">
+    <img src="https://cdn-icons-png.flaticon.com/512/2910/2910786.png" alt="Content Analyzer" class="h-20 w-20 mb-4">
+    <h2 class="font-bold text-xl text-indigo-600 mb-2">Content Analyzer</h2>
+    <p class="text-gray-600">Upload your post images to get insights on visual appeal, engagement, and branding effectiveness.</p>
+  </a>
+
+</section>
+
+<!-- Footer -->
+<footer class="bg-white shadow-inner py-6 mt-auto text-center text-gray-600">
+  &copy; 2025 Crezia AI. All rights reserved.
+</footer>
+
+</body>
+</html>

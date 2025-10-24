@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create your account - Glassmind AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+
+<body class="bg-[#0A0F3C] flex items-center justify-center min-h-screen p-4">
+
+  <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
+    <!-- Title -->
+    <h2 class="text-2xl font-semibold text-center text-gray-900 mb-1">
+      Create your account
+    </h2>
+    <p class="text-center text-gray-500 mb-6">
+      Welcome! Please fill in the details to get started.
+    </p>
+
+    <!-- Google Signup -->
+    <button
+      id="googleSignup"
+      class="flex items-center justify-center w-full border border-gray-300 rounded-lg py-2.5 mb-5 hover:bg-gray-50 transition"
+    >
+      <img
+        src="https://www.svgrepo.com/show/355037/google.svg"
+        alt="Google"
+        class="w-5 h-5 mr-2"
+      />
+      <span class="text-gray-700 font-medium">Continue with Google</span>
+    </button>
+
+    <!-- Divider -->
+    <div class="flex items-center mb-5">
+      <div class="flex-grow border-t border-gray-300"></div>
+      <span class="px-3 text-gray-400 text-sm">or</span>
+      <div class="flex-grow border-t border-gray-300"></div>
+    </div>
+
+    <!-- Registration Form -->
+    <form id="registerForm" class="space-y-3">
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-gray-700 text-sm mb-1">Email address</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="Enter your email address"
+          required
+          class="w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block text-gray-700 text-sm mb-1">Password</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter your password"
+          required
+          class="w-full border border-gray-300 rounded-lg py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <!-- Terms -->
+      <div class="flex items-start mt-3">
+        <input
+          id="terms"
+          type="checkbox"
+          required
+          class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+        />
+        <label for="terms" class="ml-2 text-sm text-gray-600">
+          I agree to the
+          <a href="terms.html" class="text-indigo-600 hover:underline">Terms of Service</a>
+          and
+          <a href="privacy.html" class="text-indigo-600 hover:underline">Privacy Policy</a>
+        </label>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg mt-4 transition"
+      >
+        Create account →
+      </button>
+    </form>
+
+    <!-- Already have an account -->
+    <p class="text-center text-gray-500 text-sm mt-5">
+      Already have an account?
+      <a href="login.html" class="text-indigo-600 hover:underline">Sign in</a>
+    </p>
+  </div>
+
+  <script>
+    // ---------- Firebase Config ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSmH2iD_2MNhjECiM51eG1YHa4jmTxwns",
+      authDomain: "glassmindai.firebaseapp.com",
+      projectId: "glassmindai",
+      storageBucket: "glassmindai.firebasestorage.app",
+      messagingSenderId: "311934024859",
+      appId: "1:311934024859:web:76161f13795089c77a9a3e",
+      measurementId: "G-PC6MFNKCPY",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // ---------- Email/Password Signup ----------
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await userCredential.user.sendEmailVerification();
+
+        alert("Account created successfully! Please verify your email before logging in.");
+        window.location.href = "login.html"; // ✅ Redirect to login page after signup
+      } catch (error) {
+        if (error.code === "auth/email-already-in-use") {
+          alert("This email is already registered. Redirecting to login...");
+          window.location.href = "login.html";
+        } else {
+          alert("Signup failed: " + error.message);
+        }
+      }
+    });
+
+    // ---------- Google Signup/Login ----------
+    document.getElementById("googleSignup").onclick = async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const token = await result.user.getIdToken();
+        localStorage.setItem("token", token);
+        alert("Signup successful via Google!");
+        window.location.href = "kp.html"; // ✅ Go directly to dashboard if Google Auth success
+      } catch (error) {
+        alert("Google signup failed: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>

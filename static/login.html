@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in - GlassMind AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+</head>
+<body class="bg-[#0A0F3C] flex items-center justify-center min-h-screen p-4">
+  
+  <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6">
+    <h2 class="text-2xl font-semibold text-center text-gray-900 mb-1">Sign in</h2>
+    <p class="text-center text-gray-500 mb-6">Welcome back! Please sign in to continue</p>
+
+    <!-- Google -->
+    <button id="googleSignIn" class="flex items-center justify-center w-full border border-gray-300 rounded-lg py-2.5 mb-5 hover:bg-gray-50 transition">
+      <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" class="w-5 h-5 mr-2">
+      <span class="text-gray-700 font-medium">Continue with Google</span>
+    </button>
+
+    <!-- Divider -->
+    <div class="flex items-center mb-5">
+      <div class="flex-grow border-t border-gray-300"></div>
+      <span class="px-3 text-gray-400 text-sm">or</span>
+      <div class="flex-grow border-t border-gray-300"></div>
+    </div>
+
+    <!-- Email -->
+    <form id="emailForm">
+      <input 
+        type="email" 
+        id="email" 
+        placeholder="Enter your email address" 
+        required 
+        class="w-full border border-gray-300 rounded-lg py-2.5 px-3 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+      <input 
+        type="password"
+        id="password"
+        placeholder="Enter your password"
+        required
+        class="w-full border border-gray-300 rounded-lg py-2.5 px-3 mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+      <button 
+        type="submit" 
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg transition"
+      >
+        Continue →
+      </button>
+    </form>
+
+    <!-- Signup -->
+    <p class="text-center text-gray-500 text-sm mt-5">
+      Don’t have an account?
+      <a href="register.html" class="text-indigo-600 hover:underline">Sign up</a>
+    </p>
+  </div>
+
+  <script>
+    // ---------- Firebase Config ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSmH2iD_2MNhjECiM51eG1YHa4jmTxwns",
+      authDomain: "glassmindai.firebaseapp.com",
+      projectId: "glassmindai",
+      storageBucket: "glassmindai.firebasestorage.app",
+      messagingSenderId: "311934024859",
+      appId: "1:311934024859:web:76161f13795089c77a9a3e",
+      measurementId: "G-PC6MFNKCPY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 🚀 Auto-redirect if user already logged in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        window.location.href = "kp.html";
+      }
+    });
+
+    // ---------- Email/Password Login ----------
+    document.getElementById("emailForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        if (!user.emailVerified) {
+          alert("Please verify your email before logging in.");
+          await auth.signOut();
+          return;
+        }
+
+        const token = await user.getIdToken();
+        localStorage.setItem("token", token);
+        localStorage.setItem("userEmail", user.email);
+
+        alert("Login successful!");
+        window.location.href = "kp.html";
+      } catch (error) {
+        if (error.code === "auth/user-not-found") {
+          alert("No account found with that email. Redirecting to Sign Up.");
+          window.location.href = "register.html";
+        } else if (error.code === "auth/wrong-password") {
+          alert("Incorrect password. Try again.");
+        } else {
+          alert(error.message);
+        }
+      }
+    });
+
+    // ---------- Google Login ----------
+    document.getElementById("googleSignIn").onclick = async () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+        const token = await user.getIdToken();
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("userEmail", user.email);
+
+        alert("Login successful via Google!");
+        window.location.href = "kp.html";
+      } catch (error) {
+        alert(error.message);
+      }
+    };
+  </script>
+</body>
+</html>

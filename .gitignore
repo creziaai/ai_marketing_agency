@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
-serviceAccountKey.json
 .env
+serviceAccountKey.json
+*.log
+*.sqlite3

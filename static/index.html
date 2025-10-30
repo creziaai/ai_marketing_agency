@@ -160,15 +160,50 @@
   });
 </script>
 
-<!-- Hero Section -->
-<section class="relative bg-cover bg-center bg-no-repeat text-white" style="background-image: url('banner.png'); background-color: rgba(79,70,229,0.85); background-blend-mode: overlay;">
+<!-- 🏠 Hero Section -->
+<section class="relative bg-cover bg-center bg-no-repeat text-white" 
+         style="background-image: url('banner.png'); background-color: rgba(79,70,229,0.85); background-blend-mode: overlay;">
   <div class="absolute inset-0 bg-indigo-600/60"></div>
   <div class="relative max-w-7xl mx-auto px-6 py-32 text-center">
     <h1 class="text-4xl md:text-6xl font-bold mb-6">AI Marketing Agency in One Click</h1>
     <p class="text-lg md:text-2xl mb-8">Create social media captions, ad copy, and blog ideas instantly with AI-powered tools.</p>
-    <button id="getStartedBtn" class="bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">Get Started</button>
+    <button id="getStartedBtn" 
+            class="bg-white text-indigo-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
+      Get Started
+    </button>
   </div>
 </section>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSmH2iD_2MNhjECiM51eG1YHa4jmTxwns",
+    authDomain: "glassmindai.firebaseapp.com",
+    projectId: "glassmindai",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const getStartedBtn = document.getElementById('getStartedBtn');
+
+    // ⚡ GSAP animation: fade-in + pop
+    gsap.fromTo(
+      getStartedBtn,
+      { opacity: 0, scale: 0.8 },
+      { opacity: 1, scale: 1, duration: 0.8, delay: 1, ease: "back.out(1.7)" }
+    );
+
+    // 👤 Click redirect based on auth
+    getStartedBtn.addEventListener('click', () => {
+      const user = auth.currentUser;
+      if (user) window.location.href = 'kp.html';
+      else window.location.href = 'register.html';
+    });
+  });
+</script>
 
 <!-- Features -->
 <section class="py-20 bg-gray-100">

@@ -27,13 +27,16 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ✅ OpenRouter API Configuration (secured)
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")  # ✅ Step 3: read key safely
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")  # read from .env
 if not OPENROUTER_API_KEY:
     raise ValueError("Missing OPENROUTER_API_KEY. Add it in your .env file.")
 
 BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_URL = f"{BASE_URL}/chat/completions"
-MODEL = "deepseek/deepseek-r1-distill-llama-70b:free"
+
+# ✅ Updated working FREE model
+MODEL = "deepseek/deepseek-r1-0528-qwen3-8b:free"
+
 
 
 

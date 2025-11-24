@@ -150,8 +150,7 @@ def generate_content():
     headers = {
     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
     "Content-Type": "application/json",
-    "HTTP-Referer": "https://crezia-ai.onrender.com",
-    "X-Title": "Crezia AI"
+    
 }
 
 
@@ -231,8 +230,7 @@ def analyze_image():
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json"
-            "HTTP-Referer": "https://crezia-ai.onrender.com",
-            "X-Title": "Crezia AI"
+            
         }
 
         payload = {
@@ -300,8 +298,7 @@ def test_api():
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
-        "HTTP-Referer": "https://crezia-ai.onrender.com",
-        "X-Title": "Crezia AI"
+        
     }
     payload = {
         "model": MODEL,

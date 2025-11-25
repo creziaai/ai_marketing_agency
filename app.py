@@ -34,8 +34,9 @@ if not OPENROUTER_API_KEY:
 BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_URL = f"{BASE_URL}/chat/completions"
 
-# ✅ Updated working FREE model
-MODEL = "deepseek/deepseek-r1-0528-qwen3-8b:free"
+# ✅ Updated stable FREE model (no 429)
+MODEL = "x-ai/grok-4.1-fast:free"
+
 
 
 

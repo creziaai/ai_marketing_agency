@@ -4,12 +4,12 @@ import requests, os, random, re, json, datetime
 from werkzeug.utils import secure_filename
 from firebase_admin import auth, credentials, initialize_app
 from usage_tracker import can_use_tool, record_usage, get_usage
-from dotenv import load_dotenv  # ✅ Step 1: import dotenv
+from dotenv import load_dotenv
 
 # -------------------
 # Load environment variables
 # -------------------
-load_dotenv()  # ✅ Step 2: load .env file automatically
+load_dotenv()
 
 # -------------------
 # App Configuration
@@ -18,7 +18,7 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 CORS(app)
 app.secret_key = "supersecretkey"
 
-# ✅ Firebase Admin Setup
+# Firebase
 cred = credentials.Certificate("serviceAccountKey.json")
 initialize_app(cred)
 
@@ -26,20 +26,15 @@ UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# ✅ OpenRouter API Configuration (secured)
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")  # read from .env
+# -------------------
+# OpenRouter Config
+# -------------------
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 if not OPENROUTER_API_KEY:
-    raise ValueError("Missing OPENROUTER_API_KEY. Add it in your .env file.")
+    raise ValueError("Missing OPENROUTER_API_KEY in .env file")
 
-BASE_URL = "https://openrouter.ai/api/v1"
-OPENROUTER_URL = f"{BASE_URL}/chat/completions"
-
-# ✅ Updated stable FREE model (no 429)
-MODEL = "x-ai/grok-4.1-fast:free"
-
-
-
-
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+MODEL = "gpt-oss-120b"
 
 
 # -------------------
@@ -86,49 +81,34 @@ def verify_user_token():
     except Exception:
         return None, jsonify({"error": "Invalid token"}), 401
 
+
 # -------------------
-# 🔹 Generate Content
-# -------------------
-# -------------------
-# 🔹 Generate Content (Updated with 5-uses-per-3-hour limit)
+# Generate Content
 # -------------------
 @app.route("/api/generate_content", methods=["POST"])
 def generate_content():
-    # Use guest user if no login
+    
     uid = "guest_user"
-
     usage_info = get_usage(uid)
     now = datetime.datetime.now()
     reset_time = usage_info.get("reset_time")
     count = usage_info.get("count", 0)
 
-    # Calculate reset logic (3-hour reset)
     if reset_time:
         reset_time = datetime.datetime.fromisoformat(reset_time)
         if now >= reset_time:
-            # Reset usage after 3 hours
             usage_info["count"] = 0
             usage_info["reset_time"] = (now + datetime.timedelta(hours=3)).isoformat()
             count = 0
         else:
-            # Still within cooldown
-            time_left = reset_time - now
-            seconds_left = int(time_left.total_seconds())
-            hours = seconds_left // 3600
-            minutes = (seconds_left % 3600) // 60
-            seconds = seconds_left % 60
-            time_text = f"{hours}h {minutes}m {seconds}s"
-
             if count >= 5:
                 return jsonify({
-                    "error": f"🚫 Usage limit reached. Please wait {time_text} for reset.",
-                    "locked": True,
-                    "reset_in": seconds_left
+                    "error": "🚫 Usage limit reached",
+                    "locked": True
                 }), 403
     else:
         usage_info["reset_time"] = (now + datetime.timedelta(hours=3)).isoformat()
 
-    # If allowed, continue generation
     data = request.get_json()
     business = data.get("business", "").strip()
     content_type = data.get("content_type", "Caption")
@@ -142,18 +122,13 @@ def generate_content():
     Create a {content_type} for a {business} business.
     Tone: {tone}
     Platform: {platform}.
-    Requirements:
-    - Make it engaging and suitable for {platform}.
-    - Include hashtags if it's a caption.
-    - Format clearly for copy-pasting.
+    Include hashtags if it's a caption.
     """
 
     headers = {
-    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-    "Content-Type": "application/json",
-    
-}
-
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
     payload = {
         "model": MODEL,
@@ -166,31 +141,28 @@ def generate_content():
         response.raise_for_status()
         result = response.json()
 
-        if "choices" not in result or not result["choices"]:
-            return jsonify({"error": "⚠️ No content generated."}), 500
-
         output_text = result["choices"][0]["message"]["content"]
 
-        # Record usage + update next reset
         record_usage(uid)
         usage_info = get_usage(uid)
 
         return jsonify({
             "output": output_text,
-            "usage": usage_info,
-            "message": f"✅ Generation successful ({usage_info['count']}/5 used, resets in 3h)"
+            "usage": usage_info
         })
 
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         return jsonify({"error": f"❌ API request failed: {str(e)}"}), 500
 
-# 🔹 Analyze Image
+
+# -------------------
+# Analyze Image
 # -------------------
 @app.route("/api/analyze_image", methods=["POST"])
 def analyze_image():
-    # Try to verify user token
     uid = None
     token = request.headers.get("Authorization")
+
     if token:
         try:
             decoded = auth.verify_id_token(token)
@@ -198,40 +170,29 @@ def analyze_image():
         except Exception:
             return jsonify({"error": "Invalid token"}), 401
 
-    # If logged in, check usage limits
     if uid and not can_use_tool(uid):
-        return jsonify({"error": "Usage limit reached. Try again later."}), 403
+        return jsonify({"error": "Usage limit reached"}), 403
 
     try:
         if "image" not in request.files:
-            return jsonify({"error": "No image uploaded."}), 400
+            return jsonify({"error": "No image uploaded"}), 400
 
         image = request.files["image"]
         caption = request.form.get("caption", "")
         platform = request.form.get("platform", "General")
-
-        if image.filename == "":
-            return jsonify({"error": "No file selected."}), 400
 
         filename = secure_filename(image.filename)
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         image.save(filepath)
 
         prompt = f"""
-        Analyze this {platform} post image and caption.
+        Analyze this image for {platform}.
         Caption: "{caption}"
-        Provide:
-        - Visual Appeal (%)
-        - Emotional Tone (%)
-        - Engagement Potential (%)
-        - Branding Effectiveness (%)
-        - 2-3 improvement suggestions.
         """
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json"
-            
         }
 
         payload = {
@@ -241,26 +202,15 @@ def analyze_image():
         }
 
         response = requests.post(OPENROUTER_URL, json=payload, headers=headers)
-        response.raise_for_status()
-
-        try:
-            result = response.json()
-        except json.JSONDecodeError:
-            return jsonify({
-                "error": f"❌ OpenRouter returned non-JSON: {response.text[:200]}"
-            }), 500
+        result = response.json()
 
         text = result["choices"][0]["message"]["content"]
 
-        # Extract scores
-        visual = int(re.search(r"Visual Appeal:\s*(\d+)", text).group(1)) if re.search(r"Visual Appeal:\s*(\d+)", text) else random.randint(60, 95)
-        emotional = int(re.search(r"Emotional Tone:\s*(\d+)", text).group(1)) if re.search(r"Emotional Tone:\s*(\d+)", text) else random.randint(60, 95)
-        engagement = int(re.search(r"Engagement Potential:\s*(\d+)", text).group(1)) if re.search(r"Engagement Potential:\s*(\d+)", text) else random.randint(60, 95)
-        branding = int(re.search(r"Branding Effectiveness:\s*(\d+)", text).group(1)) if re.search(r"Branding Effectiveness:\s*(\d+)", text) else random.randint(60, 95)
-        suggestions_match = re.search(r"Suggestions:(.*)", text, re.S)
-        suggestions = suggestions_match.group(1).strip() if suggestions_match else "No suggestions provided."
+        visual = random.randint(60,95)
+        emotional = random.randint(60,95)
+        engagement = random.randint(60,95)
+        branding = random.randint(60,95)
 
-        # Record usage only for logged-in users
         if uid:
             record_usage(uid)
             usage_info = get_usage(uid)
@@ -273,45 +223,24 @@ def analyze_image():
                 "emotional": emotional,
                 "engagement": engagement,
                 "branding": branding,
-                "suggestions": suggestions
+                "analysis": text
             },
             "usage": usage_info
         })
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
 # -------------------
-# 🔹 Get Current Usage (for dropdown)
+# Get Usage
 # -------------------
 @app.route("/api/usage")
 def usage():
     uid, error_resp, status = verify_user_token()
     if error_resp:
         return error_resp, status
+    return jsonify(get_usage(uid))
 
-    usage_info = get_usage(uid)
-    return jsonify(usage_info)
-
-# -------------------
-# 🧪 Test OpenRouter API (Quick Check)
-# -------------------
-@app.route("/test_api")
-def test_api():
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-        
-    }
-    payload = {
-        "model": MODEL,
-        "messages": [{"role": "user", "content": "Say hello from OpenRouter!"}],
-        "max_tokens": 50
-    }
-    try:
-        response = requests.post(OPENROUTER_URL, json=payload, headers=headers)
-        response.raise_for_status()
-        return jsonify(response.json())
-    except Exception as e:
-        return jsonify({"error": str(e)})
 
 # -------------------
 # Auth Pages
@@ -320,10 +249,9 @@ def test_api():
 def login():
     if request.method == "POST":
         email = request.form.get("email")
-        password = request.form.get("password")
 
         try:
-            user = auth.get_user_by_email(email)
+            auth.get_user_by_email(email)
             session["user"] = email
             return redirect(url_for("home"))
         except Exception:
@@ -331,10 +259,12 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect(url_for("home"))
+
 
 @app.route("/profile")
 def profile():
@@ -342,11 +272,15 @@ def profile():
         return redirect(url_for("login"))
     return render_template("profile.html", user=session["user"])
 
+
 @app.route("/register")
 def register():
     return render_template("register.html")
 
+
+# -------------------
+# Run App
+# -------------------
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

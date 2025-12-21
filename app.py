@@ -34,7 +34,7 @@ if not OPENROUTER_API_KEY:
     raise ValueError("Missing OPENROUTER_API_KEY in .env file")
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "gpt-oss-120b"
+MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
 
 # -------------------

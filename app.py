@@ -34,7 +34,8 @@ if not OPENROUTER_API_KEY:
     raise ValueError("Missing OPENROUTER_API_KEY in .env file")
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+MODEL = "deepseek/deepseek-r1-0528"   # remove :free
+
 
 
 # -------------------
@@ -131,6 +132,7 @@ def generate_content():
     "HTTP-Referer": "https://crezia-ai.onrender.com",
     "X-Title": "Crezia AI"
 }
+
 
 
     payload = {

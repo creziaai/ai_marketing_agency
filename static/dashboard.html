@@ -181,6 +181,7 @@
   </div>
 
   <!-- Script -->
+<!-- Script -->
 <script>
   const generateBtn = document.getElementById('generate');
   const resultEl = document.getElementById('result');
@@ -195,36 +196,21 @@
 
     if (!business) return alert("Please enter a business type.");
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("⚠ You must be logged in to generate content.");
-      window.location.href = "login.html";
-      return;
-    }
-
     resultEl.value = "Generating... 🔄";
 
     try {
       const response = await fetch('/api/generate_content', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': token  // <-- send Firebase ID token
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ business, content_type, tone, platform })
       });
+
       const data = await response.json();
 
       if (data.error) {
-        if (data.error.includes("Usage limit reached")) {
-          resultEl.value = "❌ " + data.error;
-        } else if (data.error.includes("Unauthorized") || data.error.includes("Invalid token")) {
-          alert("⚠ Unauthorized. Please log in again.");
-          localStorage.removeItem("token");
-          window.location.href = "login.html";
-        } else {
-          resultEl.value = "❌ " + data.error;
-        }
+        resultEl.value = "❌ " + data.error;
         return;
       }
 
@@ -252,6 +238,7 @@
     URL.revokeObjectURL(url);
   });
 </script>
+
 
 </body>
 </html>

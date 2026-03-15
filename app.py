@@ -157,7 +157,8 @@ Content Strategy Rules:
 • Encourage interaction (comments, tags, saves)
 • Keep language simple and powerful
 • Make it feel natural, not robotic
-• **Do NOT use # symbols** — write hashtags as plain words/phrases only.
+• Always include hashtags with the # symbol.
+• Format them like real social media hashtags.
 
 Return output EXACTLY in this structure and make the headings bold using HTML <b> tags:
 
@@ -175,9 +176,23 @@ Option 3:
 
 <b>HASHTAGS</b>
 
-Niche Hashtags: plain words/phrases
-Medium Competition Hashtags: plain words/phrases
-High Reach Hashtags: plain words/phrases
+Generate 15–20 social media hashtags.
+
+Format them exactly like this with # symbols:
+
+Niche Hashtags:
+#example #example #example
+
+Medium Competition Hashtags:
+#example #example #example
+
+High Reach Hashtags:
+#example #example #example
+
+Rules:
+• Every hashtag MUST start with #
+• Separate hashtags with spaces
+• Optimize for reach and discoverability
 
 <b>VIRAL SCORE</b>
 (0–100 based on engagement potential)

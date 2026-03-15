@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Crezia AI Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<style>
+body{
+background: linear-gradient(135deg,#eef2ff,#f9fafb);
+}
+</style>
+
+</head>
+
+<body class="min-h-screen flex flex-col font-sans">
+
+<!-- NAVBAR -->
+
+<nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center">
+
+<h1 class="text-2xl font-bold text-indigo-600">
+Crezia AI
+</h1>
+
+<span class="text-gray-500 text-sm">
+AI Marketing Assistant
+</span>
+
+</nav>
+
+<!-- MAIN -->
+
+<div class="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto mt-10 px-6 w-full">
+
+<!-- INPUT PANEL -->
+
+<div class="md:w-1/2 bg-white p-8 rounded-xl shadow-lg flex flex-col gap-5">
+
+<h2 class="text-xl font-bold text-indigo-600">
+Input Settings
+</h2>
+
+<!-- BUSINESS -->
+
+<div>
+<label class="font-semibold text-gray-700">Business Type</label>
+
+<input
+id="business"
+type="text"
+placeholder="Example: Coffee Shop, Gym, Startup"
+class="border p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400"
+/>
+
+</div>
+
+<!-- GOAL -->
+
+
+<div>
+<label class="font-semibold text-gray-700">Content Goal</label>
+
+<select
+id="goal"
+class="border border-gray-300 p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400 outline-none transition"
+>
+
+<option value="">Select goal</option>
+
+<option value="Promote a Product">Promote a Product</option>
+<option value="Increase Brand Awareness">Increase Brand Awareness</option>
+<option value="Drive Website Traffic">Drive Website Traffic</option>
+<option value="Generate Leads">Generate Leads</option>
+<option value="Increase Sales">Increase Sales</option>
+<option value="Promote Event / Launch">Promote Event / Launch</option>
+<option value="Build Community Engagement">Build Community Engagement</option>
+<option value="Educate Audience">Educate Audience</option>
+<option value="Announce Offer / Discount">Announce Offer / Discount</option>
+<option value="Grow Social Media Followers">Grow Social Media Followers</option>
+
+</select>
+
+</div>
+
+
+<!-- AUDIENCE -->
+
+
+<!-- AUDIENCE -->
+
+<div>
+<label class="font-semibold text-gray-700">Target Audience</label>
+
+<select
+id="audience"
+class="border p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400"
+>
+
+<option value="">Select content goal first</option>
+
+</select>
+
+</div>
+
+
+
+<!-- CONTENT TYPE -->
+
+<div>
+
+<label class="font-semibold text-gray-700">Content Type</label>
+
+<select
+id="content_type"
+class="border p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400"
+>
+
+<option>Caption</option>
+<option>Ad Copy</option>
+<option>Blog</option>
+
+</select>
+
+</div>
+
+<!-- PLATFORM -->
+
+<div>
+
+<label class="font-semibold text-gray-700">Platform</label>
+
+<select
+id="platform"
+class="border p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400"
+>
+
+<option>Instagram</option>
+<option>Facebook</option>
+<option>Blog</option>
+<option>Google Ads</option>
+
+</select>
+
+</div>
+
+
+<!-- TONE -->
+
+<div>
+
+<label class="font-semibold text-gray-700">Tone</label>
+
+<select
+id="tone"
+class="border p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400"
+>
+
+<option>Friendly</option>
+<option>Professional</option>
+<option>Formal</option>
+<option>Casual</option>
+<option>Witty</option>
+<option>Emotional</option>
+<option>Inspirational</option>
+<option>Persuasive</option>
+<option>Luxury</option>
+<option>Playful</option>
+<option>Urgent</option>
+<option>Storytelling</option>
+
+</select>
+
+</div>
+
+
+
+<!-- LENGTH -->
+
+<div>
+
+<label class="font-semibold text-gray-700">Content Length</label>
+
+<select
+id="length"
+class="border p-3 rounded-lg w-full mt-1 focus:ring-2 focus:ring-indigo-400"
+>
+
+<option>Short</option>
+<option>Medium</option>
+<option>Long</option>
+
+</select>
+
+</div>
+
+<!-- GENERATE BUTTON -->
+
+<button
+id="generate"
+class="mt-4 bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+>
+
+Generate Content
+
+</button>
+
+</div>
+
+<!-- OUTPUT PANEL -->
+
+<div class="md:w-1/2 bg-white p-8 rounded-xl shadow-lg flex flex-col">
+
+<h2 class="text-xl font-bold text-indigo-600 mb-4">
+Generated Content
+</h2>
+
+<div
+id="result"
+class="border p-4 rounded-lg w-full min-h-[350px] whitespace-pre-wrap"
+>
+AI generated content will appear here...
+</div>
+
+<div class="flex gap-3 mt-4">
+
+<button
+id="copyBtn"
+class="bg-indigo-500 text-white px-5 py-2 rounded-lg hover:bg-indigo-600"
+>
+Copy
+</button>
+
+<button
+id="downloadBtn"
+class="bg-green-500 text-white px-5 py-2 rounded-lg hover:bg-green-600"
+>
+Download
+</button>
+
+<button
+id="regenBtn"
+class="bg-purple-500 text-white px-5 py-2 rounded-lg hover:bg-purple-600"
+>
+Regenerate
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- SCRIPT -->
+
+<script>
+const generateBtn = document.getElementById("generate")
+const regenBtn = document.getElementById("regenBtn")
+const result = document.getElementById("result")
+
+async function generateContent() {
+    const business = document.getElementById("business").value
+    const goal = document.getElementById("goal").value
+    const audience = document.getElementById("audience").value
+    const content_type = document.getElementById("content_type").value
+    const tone = document.getElementById("tone").value
+    const platform = document.getElementById("platform").value
+    const length = document.getElementById("length").value
+
+    if (!business) {
+        alert("Enter business type")
+        return
+    }
+
+    result.innerText = "AI is writing content for you..."
+
+    try {
+        const res = await fetch("/api/generate_content", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ business, goal, audience, content_type, tone, platform, length })
+        })
+
+        const data = await res.json()
+
+        if (data.error) {
+            result.innerText = data.error
+            return
+        }
+
+        result.innerHTML = data.output
+
+    } catch (err) {
+        result.innerText = "Error generating content"
+    }
+}
+
+generateBtn.addEventListener("click", generateContent)
+regenBtn.addEventListener("click", generateContent)
+
+document.getElementById("copyBtn").onclick = () => {
+    navigator.clipboard.writeText(result.innerText) // copy as plain text
+    alert("Copied!")
+}
+
+document.getElementById("downloadBtn").onclick = () => {
+    const blob = new Blob([result.innerText], { type: "text/plain" })
+    const a = document.createElement("a")
+    a.href = URL.createObjectURL(blob)
+    a.download = "content.txt"
+    a.click()
+}
+
+// Dynamic Audience Based on Goal
+const goalSelect = document.getElementById("goal")
+const audienceSelect = document.getElementById("audience")
+const audienceOptions = {
+    "Promote a Product": ["Online shoppers","Young professionals","Students","Fitness enthusiasts","Beauty lovers"],
+    "Increase Brand Awareness": ["General audience","Social media users","Local community","Startup founders"],
+    "Drive Website Traffic": ["Blog readers","Entrepreneurs","Digital marketers","Business owners"],
+    "Generate Leads": ["Business owners","Startup founders","Freelancers","Marketing managers"],
+    "Increase Sales": ["Potential buyers","Returning customers","Deal seekers","Online shoppers"],
+    "Promote Event / Launch": ["Local audience","Industry professionals","Students","Entrepreneurs"],
+    "Build Community Engagement": ["Instagram followers","Brand community","Content creators","Fans"],
+    "Educate Audience": ["Beginners","Students","Professionals","Learners"],
+    "Announce Offer / Discount": ["Deal seekers","Online shoppers","Loyal customers","Budget buyers"],
+    "Grow Social Media Followers": ["Instagram users","Content creators","Young audience","Social media enthusiasts"]
+}
+
+goalSelect.addEventListener("change", () => {
+    const selectedGoal = goalSelect.value
+    audienceSelect.innerHTML = ""
+
+    if (!selectedGoal) {
+        audienceSelect.innerHTML = "<option>Select content goal first</option>"
+        return
+    }
+
+    audienceOptions[selectedGoal].forEach(audience => {
+        const option = document.createElement("option")
+        option.value = audience
+        option.textContent = audience
+        audienceSelect.appendChild(option)
+    })
+})
+
+// PRO FEATURES
+let savedPosts = JSON.parse(localStorage.getItem("crezia_saved")) || []
+
+function savePost() {
+    const content = result.innerText
+    if (!content) {
+        alert("No content to save")
+        return
+    }
+    savedPosts.push(content)
+    localStorage.setItem("crezia_saved", JSON.stringify(savedPosts))
+    alert("Post saved to library")
+}
+
+function viewSaved() {
+    if (savedPosts.length === 0) {
+        alert("No saved posts")
+        return
+    }
+    result.innerText = savedPosts.join("\n\n-----------------\n\n")
+}
+
+function copyHook() {
+    const text = result.innerText
+    const hook = text.split("CAPTION")[0]
+    navigator.clipboard.writeText(hook)
+    alert("Hook copied")
+}
+
+function copyHashtags() {
+    const text = result.innerText
+    const tags = text.split("HASHTAGS")[1]
+    navigator.clipboard.writeText(tags)
+    alert("Hashtags copied")
+}
+
+
+
+// attach buttons dynamically
+const saveBtn = document.createElement("button")
+saveBtn.innerText = "Save Post"
+saveBtn.className = "bg-yellow-500 text-white px-4 py-2 rounded-lg"
+saveBtn.onclick = savePost
+
+const viewBtn = document.createElement("button")
+viewBtn.innerText = "View Saved"
+viewBtn.className = "bg-gray-700 text-white px-4 py-2 rounded-lg"
+viewBtn.onclick = viewSaved
+
+document.querySelector(".flex.gap-3.mt-4").append(saveBtn)
+document.querySelector(".flex.gap-3.mt-4").append(viewBtn)
+
+</script>
+
+
+
+</body>
+</html>
+

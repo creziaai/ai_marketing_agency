@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Image Content Analyzer | Crezia AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TM79XQ9K2N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TM79XQ9K2N');
+</script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md py-4 px-6 sticky top-0 z-50 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-indigo-600">Crezia AI</h1>
+    <span class="text-gray-500 text-sm">AI Image Analyzer</span>
+    <!-- Account Dropdown -->
+    <div class="relative" x-data="{ open: false }">
+      <button @click="open = !open" class="focus:outline-none flex items-center space-x-2">
+        <img src="https://img.icons8.com/fluency/48/000000/user-male-circle.png" 
+             alt="Account" class="h-10 w-10 rounded-full border-2 border-indigo-200 hover:border-indigo-400 shadow-sm hover:shadow-md transition duration-300 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div 
+        x-show="open" 
+        @click.away="open = false"
+        class="absolute right-0 mt-3 w-48 bg-white shadow-xl rounded-xl py-2 z-50 border border-gray-100"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-2"
+      >
+        <div id="userInfo" class="hidden px-4 py-2 text-sm text-gray-600"></div>
+        <a id="loginLink" href="login.html" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition">Login</a>
+        <a id="signupLink" href="register.html" class="block px-4 py-2 text-gray-700 hover:bg-indigo-50 rounded-lg transition">Sign Up</a>
+        <button id="logoutBtn" class="hidden w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 🔧 Navbar Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDSmH2iD_2MNhjECiM51eG1YHa4jmTxwns",
+      authDomain: "glassmindai.firebaseapp.com",
+      projectId: "glassmindai",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const userInfo = document.getElementById('userInfo');
+      const loginLink = document.getElementById('loginLink');
+      const signupLink = document.getElementById('signupLink');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          userInfo.textContent = `Signed in as: ${user.email}`;
+          userInfo.classList.remove('hidden');
+          loginLink.classList.add('hidden');
+          signupLink.classList.add('hidden');
+          logoutBtn.classList.remove('hidden');
+        } else {
+          userInfo.classList.add('hidden');
+          loginLink.classList.remove('hidden');
+          signupLink.classList.remove('hidden');
+          logoutBtn.classList.add('hidden');
+        }
+      });
+
+      logoutBtn?.addEventListener('click', () => {
+        signOut(auth).then(() => {
+          window.location.href = 'index.html';
+        });
+      });
+
+      document.getElementById('toolsBtn')?.addEventListener('click', () => {
+        const user = auth.currentUser;
+        if (user) {
+          window.location.href = 'kp.html';
+        } else {
+          window.location.href = 'register.html';
+        }
+      });
+    });
+  </script>
+
+  <!-- Main content -->
+  <div class="max-w-4xl mx-auto mt-10 bg-white shadow-lg p-8 rounded-2xl space-y-6">
+
+    <h2 class="text-3xl font-bold text-indigo-600 flex items-center gap-2">
+      🧠 AI Image Content Analyzer
+    </h2>
+    <p class="text-gray-600">Upload your marketing image and AI will score it across multiple factors like engagement, design, and branding.</p>
+
+    <div class="flex flex-col gap-2">
+      <label class="font-semibold text-gray-700">Upload Image</label>
+      <input id="image" type="file" accept="image/png, image/jpeg" class="border p-3 rounded-lg bg-gray-50">
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="font-semibold text-gray-700">Optional Caption</label>
+      <textarea id="caption" class="border p-4 rounded-lg min-h-[100px]" placeholder="Paste your caption or description (optional)..."></textarea>
+    </div>
+
+    <div>
+      <label class="block text-gray-700 font-semibold mb-2">Platform</label>
+      <select id="platform" class="border p-3 rounded-xl w-full focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+        <option>Instagram</option>
+        <option>Facebook</option>
+        <option>LinkedIn</option>
+        <option>Blog</option>
+      </select>
+    </div>
+
+    <button id="analyze" class="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+      Analyze Image
+    </button>
+
+    <div id="analysis" class="mt-6 bg-gray-50 border p-6 rounded-xl text-gray-800 min-h-[250px] space-y-4">
+      🧠 Your image analysis will appear here...
+    </div>
+
+    <div class="flex gap-2">
+      <button id="copyBtn" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">Copy</button>
+      <button id="downloadBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">Download TXT</button>
+    </div>
+
+    <!-- 🔙 Back Button -->
+    <div class="flex justify-center mt-8">
+      <button id="backBtn"
+        class="flex items-center gap-2 bg-gray-200 text-gray-700 font-medium px-5 py-2 rounded-full shadow hover:bg-gray-300 hover:shadow-md transition duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back
+      </button>
+    </div>
+
+  </div>
+<script>
+  const analyzeBtn = document.getElementById("analyze");
+  const analysisEl = document.getElementById("analysis");
+  const copyBtn = document.getElementById("copyBtn");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const backBtn = document.getElementById("backBtn");
+
+  analyzeBtn.addEventListener("click", async () => {
+    const fileInput = document.getElementById("image");
+    const caption = document.getElementById("caption").value.trim();
+    const platform = document.getElementById("platform").value;
+
+    if (!fileInput.files[0]) return alert("Please upload an image.");
+
+    // 🚫 Removed login/token check
+
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    formData.append("caption", caption);
+    formData.append("platform", platform);
+
+    analysisEl.innerHTML = "Analyzing image... 🔄";
+
+    try {
+      const res = await fetch("/api/analyze_image", {
+        method: "POST",
+        body: formData   // 🚫 Removed headers with token
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        analysisEl.innerHTML = "❌ " + data.error;
+        return;
+      }
+
+      const { visual, emotional, engagement, branding, suggestions } = data.scores;
+
+      analysisEl.innerHTML = `
+        <div class="space-y-4">
+          <div>
+            <p class="font-semibold text-gray-700">🎨 Visual Appeal: ${visual}%</p>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="bg-indigo-500 h-3 rounded-full transition-all duration-500" style="width: ${visual}%"></div>
+            </div>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-700">💬 Emotional Tone: ${emotional}%</p>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="bg-pink-500 h-3 rounded-full transition-all duration-500" style="width: ${emotional}%"></div>
+            </div>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-700">🚀 Engagement Potential: ${engagement}%</p>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: ${engagement}%"></div>
+            </div>
+          </div>
+          <div>
+            <p class="font-semibold text-gray-700">🧭 Branding Effectiveness: ${branding}%</p>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+              <div class="bg-yellow-500 h-3 rounded-full transition-all duration-500" style="width: ${branding}%"></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold mt-4 text-indigo-700">💡 Suggestions:</h3>
+            <p class="text-gray-700 whitespace-pre-line">${suggestions}</p>
+          </div>
+        </div>
+      `;
+    } catch (err) {
+      analysisEl.innerHTML = "❌ Failed to analyze image.";
+    }
+  });
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(analysisEl.innerText);
+    copyBtn.innerText = "Copied!";
+    setTimeout(() => copyBtn.innerText = "Copy", 1500);
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    const blob = new Blob([analysisEl.innerText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "image_analysis.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // ✅ Functional Back Button
+  backBtn.addEventListener('click', () => {
+    window.history.back();
+  });
+</script>
+</body>
+</html>

@@ -181,7 +181,12 @@ def analyze_image():
             return jsonify({"error": "No image uploaded"}), 400
 
         image = request.files["image"]
-        caption = request.form.get("caption", "")
+        caption = request.form.get("caption", "").strip()
+
+if not caption:
+    return jsonify({
+        "error": "⚠️ Please enter a caption before analyzing the image."
+    }), 400
         platform = request.form.get("platform", "Instagram")
 
         # 🔒 Moderation

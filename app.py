@@ -19,12 +19,48 @@ CORS(app)
 app.secret_key = "supersecretkey"
 
 # -------------------
-# Content Moderation
+# 🔒 STRONG CONTENT MODERATION (ALL-IN-ONE)
 # -------------------
 def is_restricted(text):
+    if not text:
+        return False
+
     text = text.lower()
-    pattern = r"(sex|porn|xxx|nude|nsfw|erotic|explicit)"
-    return re.search(pattern, text)
+
+    banned_keywords = [
+        "sex", "porn", "pornography", "xxx", "nude", "nudity",
+        "nsfw", "erotic", "explicit", "adult content",
+        "18+", "sexual", "fetish", "onlyfans",
+        "escort", "hookup", "intimate", "sensual"
+    ]
+
+    if any(word in text for word in banned_keywords):
+        return True
+
+    patterns = [
+        r"s[e3]x",
+        r"p[o0]rn",
+        r"xxx+",
+        r"18\+"
+    ]
+
+    for pattern in patterns:
+        if re.search(pattern, text):
+            return True
+
+    return False
+
+
+def block_if_restricted(*inputs):
+    combined = " ".join([str(i) for i in inputs if i])
+
+    if is_restricted(combined):
+        return jsonify({
+            "error": "🚫 This request cannot be processed as it may violate platform safety guidelines. Please try a different topic."
+        }), 400
+
+    return None
+
 
 # -------------------
 # Firebase
@@ -47,117 +83,58 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "deepseek/deepseek-chat"
 
 # -------------------
-# Serve Pages
+# Pages
 # -------------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/welcome")
-def welcome():
-    return render_template("kp.html")
-
-@app.route("/tools")
-def tools():
-    return render_template("index.html")
-
-@app.route("/analyzer")
-def analyzer():
-    return render_template("analyzer.html")
-
 @app.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
 
-@app.route("/about")
-def about():
-    return render_template("about.html")
+@app.route("/analyzer")
+def analyzer():
+    return render_template("analyzer.html")
 
 @app.route('/<path:path>')
 def serve_static_file(path):
     return send_from_directory(app.static_folder, path)
 
 # -------------------
-# Verify Firebase Token
-# -------------------
-def verify_user_token():
-    token = request.headers.get("Authorization")
-    if not token:
-        return None, jsonify({"error": "Unauthorized"}), 401
-    try:
-        decoded = auth.verify_id_token(token)
-        return decoded['uid'], None, None
-    except Exception:
-        return None, jsonify({"error": "Invalid token"}), 401
-
-# -------------------
 # Generate Content
 # -------------------
 @app.route("/api/generate_content", methods=["POST"])
 def generate_content():
-    
+
     uid = "guest_user"
     usage_info = get_usage(uid)
     now = datetime.datetime.now()
-    reset_time = usage_info.get("reset_time")
-    count = usage_info.get("count", 0)
 
-    if reset_time:
-        reset_time = datetime.datetime.fromisoformat(reset_time)
-        if now >= reset_time:
-            usage_info["count"] = 0
-            usage_info["reset_time"] = (now + datetime.timedelta(hours=3)).isoformat()
-            count = 0
-        else:
-            if count >= 5:
-                return jsonify({
-                    "error": "🚫 Usage limit reached",
-                    "locked": True
-                }), 403
-    else:
-        usage_info["reset_time"] = (now + datetime.timedelta(hours=3)).isoformat()
+    if usage_info.get("count", 0) >= 5:
+        return jsonify({"error": "🚫 Usage limit reached"}), 403
 
-    # Receive data
     data = request.get_json()
 
-    business = data.get("business", "").strip()
-    goal = data.get("goal", "Increase engagement")
-    audience = data.get("audience", "Social media users")
-    content_type = data.get("content_type", "Caption")
-    tone = data.get("tone", "Friendly")
-    platform = data.get("platform", "Instagram")
-    length = data.get("length", "Medium")
+    business = data.get("business", "")
+    goal = data.get("goal", "")
+    audience = data.get("audience", "")
+    content_type = data.get("content_type", "")
 
-    if not business:
-        return jsonify({"error": "Please provide a business niche."}), 400
+    # 🔒 Moderation
+    blocked = block_if_restricted(business, goal, audience, content_type)
+    if blocked:
+        return blocked
 
-    # 🔒 Content moderation
-    combined_input = " ".join([business, goal, audience, content_type])
-
-    if is_restricted(combined_input):
-        return jsonify({
-            "error": "🚫 We can’t generate content for this request as it may not align with platform guidelines. Please try a different topic."
-        }), 400
-
-    # Length control
-    if length == "Short":
-        length_instruction = "Keep the caption very short and punchy (1–2 sentences)."
-    elif length == "Medium":
-        length_instruction = "Write a balanced caption with 3–4 engaging sentences."
-    else:
-        length_instruction = "Write a longer storytelling style caption with emotional appeal."
-
-    # Prompt
     prompt = f"""
-You are an elite social media marketing strategist.
+You are an elite social media strategist.
 
-Business Type: {business}
-Content Goal: {goal}
-Target Audience: {audience}
-Platform: {platform}
-Tone: {tone}
+STRICT RULE:
+Do NOT generate any adult, NSFW, or explicit content.
 
-{length_instruction}
+Business: {business}
+Goal: {goal}
+Audience: {audience}
 
 Generate:
 
@@ -166,7 +143,7 @@ Generate:
 2.
 3.
 
-<b>CAPTION OPTIONS</b>
+<b>CAPTIONS</b>
 Option 1:
 Option 2:
 Option 3:
@@ -174,54 +151,24 @@ Option 3:
 <b>CALL TO ACTION</b>
 
 <b>HASHTAGS</b>
+Generate 15 hashtags.
 
-Niche Hashtags:
-#example #example #example
-
-Medium Competition Hashtags:
-#example #example #example
-
-High Reach Hashtags:
-#example #example #example
-
-<b>VIRAL SCORE</b>
-
-<b>CONTENT IDEAS FOR NEXT POSTS</b>
-1.
-2.
-3.
-4.
-5.
+<b>RECOMMENDATION</b>
+Give one suggestion to improve performance.
 """
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    response = requests.post(
+        OPENROUTER_URL,
+        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
+        json={"model": MODEL, "messages": [{"role": "user", "content": prompt}]}
+    )
 
-    payload = {
-        "model": MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 700,
-        "temperature": 0.9
-    }
+    result = response.json()
+    output = result["choices"][0]["message"]["content"]
 
-    try:
-        response = requests.post(OPENROUTER_URL, json=payload, headers=headers)
-        response.raise_for_status()
+    record_usage(uid)
 
-        result = response.json()
-        output_text = result["choices"][0]["message"]["content"]
-
-        record_usage(uid)
-
-        return jsonify({
-            "output": output_text,
-            "usage": get_usage(uid)
-        })
-
-    except Exception as e:
-        return jsonify({"error": f"❌ API request failed: {str(e)}"}), 500
+    return jsonify({"output": output})
 
 
 # -------------------
@@ -235,22 +182,52 @@ def analyze_image():
 
         image = request.files["image"]
         caption = request.form.get("caption", "")
+        platform = request.form.get("platform", "Instagram")
 
-        # 🔒 Content moderation
-        if is_restricted(caption):
-            return jsonify({
-                "error": "🚫 This content may violate platform guidelines. Please upload a different image or caption."
-            }), 400
+        # 🔒 Moderation
+        blocked = block_if_restricted(caption)
+        if blocked:
+            return blocked
 
         filename = secure_filename(image.filename)
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         image.save(filepath)
 
+        prompt = f"""
+You are a social media expert.
+
+STRICT RULE:
+Do NOT generate adult or explicit content.
+
+Analyze this image for {platform}.
+
+Caption: {caption}
+
+Return:
+
+1. Short description
+2. Viral Hook
+3. Caption
+4. Call To Action
+5. 10 Hashtags
+6. Recommendation to improve engagement
+"""
+
+        response = requests.post(
+            OPENROUTER_URL,
+            headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
+            json={"model": MODEL, "messages": [{"role": "user", "content": prompt}]}
+        )
+
+        result = response.json()
+        analysis = result["choices"][0]["message"]["content"]
+
         return jsonify({
-            "message": "Image analyzed successfully",
+            "analysis": analysis,
             "scores": {
-                "visual": random.randint(60,95),
-                "engagement": random.randint(60,95)
+                "visual": random.randint(70, 95),
+                "engagement": random.randint(70, 95),
+                "branding": random.randint(70, 95)
             }
         })
 
@@ -259,7 +236,7 @@ def analyze_image():
 
 
 # -------------------
-# Run App
+# Run
 # -------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
